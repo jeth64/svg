@@ -15,7 +15,10 @@
   ([decimal-places m] (mapv (partial mapv (partial round decimal-places)) m))
   ([m] (matrix-round 0 m)))
 
-(defn- transpose [m] (apply mapv vector m))
+(defn transpose [m] (apply mapv vector m))
+
+(defn factorial [n]
+  (apply * (range 1 (inc n))))
 
 (defn choose [n k]
   (if (< k 0)
@@ -45,8 +48,7 @@
           P))))
 
 (defn elevate-high [control-points by-degree]
-  (letfn [
-          (summand [i j pj]
+  (letfn [(summand [i j pj]
             (let [c (/ (* (choose (dec (count control-points)) j)
                           (choose by-degree (- i j)))
                        (choose (+ (dec (count control-points)) by-degree)
@@ -58,21 +60,6 @@
                          (range (count control-points))
                          control-points)))]
     (map calc-pi (range (+ (count control-points) by-degree)))))
-
-(defn reduce-degree [control-points]
-  (letfn [(factor [i n] (* (Math/pow 2 (- 1 (* 2 n)))
-                           (reduce #(+ %1 (choose (* 2 n) (* 2 %2)))
-                                   0 (range (inc i)))))]
-    (loop [new-points [(first control-points)] i 1]
-      (if (< i (count control-points))
-        (let [l (factor i (dec (count control-points)))
-              a (print "next " [i l (last new-points) (nth control-points i)])]
-          (recur (conj new-points
-                       (mapv #(+ (* (- 1 l) %1) (* l %2))
-                             (last new-points)
-                             (nth control-points i)))
-                 (inc i)))
-        new-points))))
 
 (defn reduce-degree [control-points]
   (letfn [(approx-points [points n]
@@ -90,3 +77,14 @@
       (map #(let [lambda (factor %3 n)]
               (weighted-sum [%1 %2] [(- 1 lambda) lambda]))
            Pr Pl (range n) ))))
+
+(defn bezier-polynomial
+  "Returns coefficients for polynomial form of bezier curve defined by given points
+   (bezier-polynomial (range 4)) => (0 0 3 0) for 0*t^3 + 0* t^2 + 3*t^1 + 0*t^0"
+ [control-points]
+ (-> (map (fn [j] (map (partial * (choose (dec (count control-points)) j))
+                      (weighted-sum (take (inc j) control-points)
+                                    (map #(* (if (zero? (mod (+ % j) 2)) 1 -1) (choose j %))
+                                         (range (inc j))))))
+          (range (count control-points)))
+     reverse vec))
