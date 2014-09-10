@@ -88,3 +88,23 @@
                                          (range (inc j))))))
           (range (count control-points)))
      reverse vec))
+
+
+(defn de-casteljau [t control-points];; test
+  (loop [coefs control-points]
+    (if (> (count coefs) 1)
+      (recur (map #(weighted-sum [%1 %2] [(- 1 t) t])
+                  coefs (rest coefs)))
+      coefs)))
+
+
+(defn de-casteljau-split-at [t control-points];; test
+  (loop [coefs control-points
+         curve1 [(first control-points)]
+         curve2 [(last control-points)]]
+    (if (> (count coefs) 1)
+      (let [new-points (map #(weighted-sum [%1 %2] [(- 1 t) t]) coefs (rest coefs))]
+        (recur new-points
+               (conj curve1 (first new-points))
+               (cons curve2 (last new-points))))
+      [curve1 curve2])))
