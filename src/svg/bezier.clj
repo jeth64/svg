@@ -1,33 +1,10 @@
-(ns svg.bezier)
+(ns svg.bezier
+  (:require [svg.math :refer :all]))
 
 ;;
 ;; see
 ;; - http://en.wikipedia.org/wiki/B%C3%A9zier_curve#Quadratic_B.C3.A9zier_curves
 ;; - http://yamnuska.ca/geek/degreeReductionBezier.pdf
-
-
-;; general math operations
-(defn round
-  ([decimal-places n] (read-string (format (str "%." decimal-places "f") (double n))))
-  ([n] (round 0 n)))
-
-(defn matrix-round
-  ([decimal-places m] (mapv (partial mapv (partial round decimal-places)) m))
-  ([m] (matrix-round 0 m)))
-
-(defn transpose [m] (apply mapv vector m))
-
-(defn factorial [n]
-  (apply * (range 1 (inc n))))
-
-(defn choose [n k]
-  (if (< k 0)
-    0
-    (/ (apply * (range (inc (- n k)) (inc n)))
-       (apply * (range 1 (inc k))))))
-
-(defn weighted-sum [points weights]
-  (mapv #(apply + (map * weights %)) (transpose points)))
 
 
 ;; bezier functions
